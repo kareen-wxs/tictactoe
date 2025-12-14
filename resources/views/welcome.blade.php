@@ -350,8 +350,8 @@
                 <div style="color: #6b7280; line-height: 1.8; font-size: 1rem;">
                     <p style="margin-bottom: 10px;">Чтобы получать промокоды в Telegram, нужно:</p>
                     <ol style="margin-left: 20px; margin-bottom: 10px;">
-                        <li>Найти вашего бота в Telegram</li>
-                        <li>Написать ему команду <strong style="color: #ec4899;">/start</strong></li>
+                        <li>Найти свой Chat ID через бота <a href="https://t.me/userinfobot" target="_blank" style="color: #ec4899; text-decoration: underline;">@userinfobot</a> в Telegram</li>
+                        <li>Написать боту команду <strong style="color: #ec4899;">/start</strong></li>
                         <li>Только после этого начинать играть</li>
                     </ol>
                     <p style="font-size: 0.9rem; color: #9ca3af; margin-top: 15px;">

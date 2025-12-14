@@ -242,11 +242,11 @@
             <div style="background: linear-gradient(135deg, #fff5f7 0%, #fef3f2 100%); border: 2px solid #ec4899; border-radius: 20px; padding: 20px; margin-bottom: 25px; text-align: center;">
                 <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px;">
                     <span style="font-size: 1.5rem;">📱</span>
-                    <strong style="color: #ec4899; font-size: 1.1rem;">Перед игрой напишите боту /start!</strong>
+                    <strong style="color: #ec4899; font-size: 1.1rem;">Перед игрой найдите свой Chat ID!</strong>
                 </div>
                 <p style="color: #6b7280; font-size: 0.9rem; line-height: 1.6;">
-                    Найдите вашего бота в Telegram и отправьте команду <strong style="color: #ec4899;">/start</strong>,<br>
-                    чтобы получать промокоды при победе!
+                    Найдите свой Chat ID через бота <a href="https://t.me/userinfobot" target="_blank" style="color: #ec4899; text-decoration: underline; font-weight: 600;">@userinfobot</a> в Telegram,<br>
+                    затем напишите боту команду <strong style="color: #ec4899;">/start</strong>, чтобы получать промокоды при победе!
                 </p>
             </div>
             
@@ -447,11 +447,13 @@
             
             // Отправляем сообщение в Telegram
             try {
+                console.log('Отправка сообщения о проигрыше в Telegram...');
                 await sendTelegramMessage('Проигрыш');
             } catch (error) {
                 console.error('Error handling lose:', error);
             }
             
+            // Показываем модальное окно с предложением сыграть ещё раз
             loseModal.classList.add('active');
             disableAllCells();
         }
