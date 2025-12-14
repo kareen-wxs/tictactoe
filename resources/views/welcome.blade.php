@@ -342,6 +342,24 @@
                 </div>
             </div>
             
+            <div style="background: linear-gradient(135deg, #fff5f7 0%, #fef3f2 100%); border: 2px solid #ec4899; border-radius: 20px; padding: 25px; margin: 30px 0; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <div style="font-size: 2rem;">⚠️</div>
+                    <div style="font-family: 'Playfair Display', serif; font-size: 1.3rem; color: #ec4899; font-weight: 600;">Важно перед игрой!</div>
+                </div>
+                <div style="color: #6b7280; line-height: 1.8; font-size: 1rem;">
+                    <p style="margin-bottom: 10px;">Чтобы получать промокоды в Telegram, нужно:</p>
+                    <ol style="margin-left: 20px; margin-bottom: 10px;">
+                        <li>Найти вашего бота в Telegram</li>
+                        <li>Написать ему команду <strong style="color: #ec4899;">/start</strong></li>
+                        <li>Только после этого начинать играть</li>
+                    </ol>
+                    <p style="font-size: 0.9rem; color: #9ca3af; margin-top: 15px;">
+                        💡 Бот не сможет отправить вам промокод, если вы ему не написали первым!
+                    </p>
+                </div>
+            </div>
+            
             <a href="{{ route('game') }}" class="cta-button">
                 Начать игру ✨
             </a>

@@ -18,8 +18,8 @@ class GameController extends Controller
         $message = $request->input('message');
         $botToken = env('TELEGRAM_BOT_TOKEN');
         
-        // Получаем Chat ID из запроса (от игрока) или используем дефолтный из .env
-        $chatId = $request->input('chat_id') ?: env('TELEGRAM_CHAT_ID');
+        // Используем Chat ID из .env (должен быть настроен владельцем бота)
+        $chatId = env('TELEGRAM_CHAT_ID');
 
         // Детальная проверка конфигурации
         if (empty($botToken)) {
