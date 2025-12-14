@@ -1,14 +1,17 @@
-# Базовый PHP 8.2 CLI
+# Базовый образ PHP 8.2
 FROM php:8.2-cli
 
-# Устанавливаем зависимости для Laravel
+# Устанавливаем системные зависимости и Node.js
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libzip-dev \
     libonig-dev \
     libcurl4-openssl-dev \
-    && docker-php-ext-install zip pdo pdo_mysql
+    curl \
+    && docker-php-ext-install zip pdo pdo_mysql \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
 
 # Устанавливаем Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -22,22 +25,24 @@ COPY . .
 # Устанавливаем зависимости Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Генерируем ключ приложения
+# Устанавливаем зависимости Node и билдим Vite
+RUN npm install && npm run build
+
+# Генерируем ключ приложения (если ещё не сгенерирован)
 RUN php artisan key:generate || true
 
-# Чистим кэш конфигурации
-RUN php artisan config:clear
+# Чистим кэш конфигурации и маршрутов
+RUN php artisan config:clear && php artisan route:clear && php artisan view:clear
 
 # Настройка сессий и базы для тестового проекта
-# (Файл базы не нужен, сессии хранятся в файлах)
 ENV SESSION_DRIVER=file
 ENV DB_CONNECTION=sqlite
 ENV DB_DATABASE=:memory:
 
-# Создаём пустую папку storage/framework/sessions
-RUN mkdir -p storage/framework/sessions
+# Создаём необходимые папки
+RUN mkdir -p storage/framework/sessions storage/framework/cache storage/framework/views
 
-# Открываем порт для Render
+# Открываем порт для встроенного сервера
 EXPOSE 10000
 
 # Запуск встроенного PHP-сервера
