@@ -239,15 +239,36 @@
         <div class="game-container" style="position: relative;">
             <h1 class="game-title">Крестики-Нолики</h1>
             
-            <div style="background: linear-gradient(135deg, #fff5f7 0%, #fef3f2 100%); border: 2px solid #ec4899; border-radius: 20px; padding: 20px; margin-bottom: 25px; text-align: center;">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-size: 1.5rem;">📱</span>
-                    <strong style="color: #ec4899; font-size: 1.1rem;">Перед игрой найдите свой Chat ID!</strong>
+            <div style="background: linear-gradient(135deg, #fff5f7 0%, #fef3f2 100%); border: 2px solid #ec4899; border-radius: 20px; padding: 20px; margin-bottom: 25px;">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px;">
+                        <span style="font-size: 1.5rem;">📱</span>
+                        <strong style="color: #ec4899; font-size: 1.1rem;">Введите ваш Telegram Chat ID</strong>
+                    </div>
+                    <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin-bottom: 15px;">
+                        Найдите свой Chat ID через бота <a href="https://t.me/userinfobot" target="_blank" style="color: #ec4899; text-decoration: underline; font-weight: 600;">@userinfobot</a>,<br>
+                        затем введите его ниже и напишите боту <strong style="color: #ec4899;">/start</strong>
+                    </p>
                 </div>
-                <p style="color: #6b7280; font-size: 0.9rem; line-height: 1.6;">
-                    Найдите свой Chat ID через бота <a href="https://t.me/userinfobot" target="_blank" style="color: #ec4899; text-decoration: underline; font-weight: 600;">@userinfobot</a> в Telegram,<br>
-                    затем напишите боту команду <strong style="color: #ec4899;">/start</strong>, чтобы получать промокоды при победе!
-                </p>
+                
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input 
+                        type="text" 
+                        id="telegramChatId" 
+                        placeholder="Например: 123456789"
+                        style="flex: 1; padding: 12px 15px; border: 2px solid #fce7f3; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease;"
+                        onfocus="this.style.borderColor='#ec4899'; this.style.boxShadow='0 0 0 3px rgba(236, 72, 153, 0.1)'"
+                        onblur="this.style.borderColor='#fce7f3'; this.style.boxShadow='none'"
+                    >
+                    <button 
+                        class="btn" 
+                        onclick="saveChatId()"
+                        style="padding: 12px 25px; font-size: 0.95rem; white-space: nowrap;"
+                    >
+                        Сохранить
+                    </button>
+                </div>
+                <div id="chatIdStatus" style="margin-top: 10px; font-size: 0.85rem; text-align: center;"></div>
             </div>
             
             <div class="status-message" id="statusMessage">Ваш ход! Вы играете за X</div>
@@ -297,6 +318,31 @@
         const promoCodeContainer = document.getElementById('promoCodeContainer');
         const promoCodeText = document.getElementById('promoCode');
         const loseModal = document.getElementById('loseModal');
+        const telegramChatIdInput = document.getElementById('telegramChatId');
+        const chatIdStatus = document.getElementById('chatIdStatus');
+        
+        // Загружаем сохраненный Chat ID при загрузке страницы
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedChatId = localStorage.getItem('telegramChatId');
+            if (savedChatId) {
+                telegramChatIdInput.value = savedChatId;
+                chatIdStatus.innerHTML = '<span style="color: #10b981;">✅ Chat ID сохранен!</span>';
+            }
+        });
+        
+        function saveChatId() {
+            const chatId = telegramChatIdInput.value.trim();
+            if (chatId) {
+                localStorage.setItem('telegramChatId', chatId);
+                chatIdStatus.innerHTML = '<span style="color: #10b981;">✅ Chat ID сохранен! Теперь напишите боту /start</span>';
+                setTimeout(() => {
+                    chatIdStatus.innerHTML = '';
+                }, 3000);
+            } else {
+                chatIdStatus.innerHTML = '<span style="color: #ef4444;">⚠️ Пожалуйста, введите ваш Chat ID</span>';
+            }
+        }
+        
         cells.forEach((cell, index) => {
             cell.addEventListener('click', () => handleCellClick(index));
         });
@@ -498,7 +544,18 @@
                     return;
                 }
                 
+                // Получаем Chat ID из localStorage (если указан игроком)
+                const userChatId = localStorage.getItem('telegramChatId');
+                
                 console.log('Отправка сообщения в Telegram:', message);
+                console.log('Chat ID игрока:', userChatId || 'не указан (будет использован дефолтный)');
+                
+                const requestBody = { message };
+                
+                // Если игрок указал свой Chat ID, отправляем ему, иначе используется дефолтный из .env
+                if (userChatId) {
+                    requestBody.chat_id = userChatId;
+                }
                 
                 const response = await fetch('/api/telegram/send', {
                     method: 'POST',
@@ -507,7 +564,7 @@
                         'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ message })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 const data = await response.json();
@@ -518,7 +575,7 @@
                     
                     // Показываем понятное сообщение об ошибке
                     if (data.error && (data.error.includes('Chat ID не указан') || data.error.includes('chat not found'))) {
-                        alert('⚠️ Не удалось отправить промокод в Telegram.\n\nУбедитесь, что вы написали боту команду /start перед игрой!');
+                        alert('⚠️ Не удалось отправить промокод в Telegram.\n\nУбедитесь, что:\n1. Вы ввели ваш Chat ID и нажали "Сохранить"\n2. Вы написали боту команду /start перед игрой!');
                     } else {
                         alert('Не удалось отправить сообщение в Telegram: ' + (data.error || 'Неизвестная ошибка'));
                     }
