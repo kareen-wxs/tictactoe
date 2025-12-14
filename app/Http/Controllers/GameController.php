@@ -17,7 +17,9 @@ class GameController extends Controller
     {
         $message = $request->input('message');
         $botToken = env('TELEGRAM_BOT_TOKEN');
-        $chatId = env('TELEGRAM_CHAT_ID');
+        
+        // Получаем Chat ID из запроса (от игрока) или используем дефолтный из .env
+        $chatId = $request->input('chat_id') ?: env('TELEGRAM_CHAT_ID');
 
         // Детальная проверка конфигурации
         if (empty($botToken)) {
@@ -32,7 +34,7 @@ class GameController extends Controller
             Log::error('Telegram chat ID is empty');
             return response()->json([
                 'success' => false,
-                'error' => 'TELEGRAM_CHAT_ID не настроен в .env файле'
+                'error' => 'Chat ID не указан. Пожалуйста, укажите ваш Telegram Chat ID в настройках игры.'
             ], 400);
         }
 

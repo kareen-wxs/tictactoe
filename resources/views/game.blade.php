@@ -222,6 +222,88 @@
             animation: confetti-fall 3s linear infinite;
         }
         
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%);
+            border: 2px solid #ec4899;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.5rem;
+        }
+        
+        .settings-btn:hover {
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 5px 15px rgba(236, 72, 153, 0.3);
+        }
+        
+        .settings-form {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 2px solid #fce7f3;
+        }
+        
+        .settings-form h3 {
+            font-family: 'Playfair Display', serif;
+            color: #ec4899;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .settings-form p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #fce7f3;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #ec4899;
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+        }
+        
+        .input-group small {
+            display: block;
+            color: #9ca3af;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        
+        .settings-form.hidden {
+            display: none;
+        }
+        
         @keyframes confetti-fall {
             0% {
                 transform: translateY(-100vh) rotate(0deg);
@@ -236,8 +318,33 @@
 </head>
 <body>
     <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="game-container">
+        <div class="game-container" style="position: relative;">
+            <div class="settings-btn" id="settingsBtn" title="Настройки">⚙️</div>
+            
             <h1 class="game-title">Крестики-Нолики</h1>
+            
+            <div class="settings-form hidden" id="settingsForm">
+                <h3>Настройки Telegram</h3>
+                <p>Укажите ваш Telegram Chat ID, чтобы получать уведомления о победах и промокоды!</p>
+                
+                <div class="input-group">
+                    <label for="telegramChatId">Ваш Telegram Chat ID:</label>
+                    <input 
+                        type="text" 
+                        id="telegramChatId" 
+                        placeholder="Например: 123456789"
+                        value=""
+                    >
+                    <small>
+                        💡 Как узнать Chat ID? Напишите боту <a href="https://t.me/userinfobot" target="_blank" style="color: #ec4899;">@userinfobot</a> - он покажет ваш ID
+                    </small>
+                </div>
+                
+                <div class="button-container">
+                    <button class="btn" onclick="saveSettings()">Сохранить</button>
+                    <button class="btn btn-secondary" onclick="closeSettings()">Отмена</button>
+                </div>
+            </div>
             
             <div class="status-message" id="statusMessage">Ваш ход! Вы играете за X</div>
             
@@ -286,6 +393,37 @@
         const promoCodeContainer = document.getElementById('promoCodeContainer');
         const promoCodeText = document.getElementById('promoCode');
         const loseModal = document.getElementById('loseModal');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsForm = document.getElementById('settingsForm');
+        const telegramChatIdInput = document.getElementById('telegramChatId');
+        
+        // Загружаем сохраненный Chat ID при загрузке страницы
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedChatId = localStorage.getItem('telegramChatId');
+            if (savedChatId) {
+                telegramChatIdInput.value = savedChatId;
+            }
+        });
+        
+        // Открытие/закрытие настроек
+        settingsBtn.addEventListener('click', () => {
+            settingsForm.classList.toggle('hidden');
+        });
+        
+        function closeSettings() {
+            settingsForm.classList.add('hidden');
+        }
+        
+        function saveSettings() {
+            const chatId = telegramChatIdInput.value.trim();
+            if (chatId) {
+                localStorage.setItem('telegramChatId', chatId);
+                alert('✅ Chat ID сохранен! Теперь уведомления будут приходить вам в Telegram.');
+                closeSettings();
+            } else {
+                alert('⚠️ Пожалуйста, введите ваш Chat ID');
+            }
+        }
         
         cells.forEach((cell, index) => {
             cell.addEventListener('click', () => handleCellClick(index));
@@ -486,7 +624,18 @@
                     return;
                 }
                 
+                // Получаем Chat ID из localStorage (если указан игроком)
+                const userChatId = localStorage.getItem('telegramChatId');
+                
                 console.log('Отправка сообщения в Telegram:', message);
+                console.log('Chat ID игрока:', userChatId || 'не указан (будет использован дефолтный)');
+                
+                const requestBody = { message };
+                
+                // Если игрок указал свой Chat ID, отправляем ему, иначе используется дефолтный из .env
+                if (userChatId) {
+                    requestBody.chat_id = userChatId;
+                }
                 
                 const response = await fetch('/api/telegram/send', {
                     method: 'POST',
@@ -495,7 +644,7 @@
                         'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ message })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 const data = await response.json();
@@ -503,7 +652,16 @@
                 
                 if (!data.success) {
                     console.error('Ошибка отправки в Telegram:', data.error);
-                    alert('Не удалось отправить сообщение в Telegram: ' + (data.error || 'Неизвестная ошибка'));
+                    
+                    // Если Chat ID не указан, предлагаем настроить
+                    if (data.error && data.error.includes('Chat ID не указан')) {
+                        if (confirm('Вы не указали ваш Telegram Chat ID. Хотите настроить его сейчас?')) {
+                            settingsForm.classList.remove('hidden');
+                            telegramChatIdInput.focus();
+                        }
+                    } else {
+                        alert('Не удалось отправить сообщение в Telegram: ' + (data.error || 'Неизвестная ошибка'));
+                    }
                 } else {
                     console.log('Сообщение успешно отправлено в Telegram!');
                 }
